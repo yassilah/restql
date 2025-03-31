@@ -65,7 +65,7 @@ function normalizeRelations(col: string, rootTable: string, schema: Schema = {})
         const relation = schema[tableName]?.relations?.[col] ?? {}
         const relatedTable = relation.table ?? col
         return acc.concat(relatedTable)
-    }, []).slice(-2)
+    }, [] as string[]).slice(-2)
 
     return [table, column]
 }
