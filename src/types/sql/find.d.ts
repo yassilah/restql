@@ -1,5 +1,5 @@
 import type { Condition, ConditionTree, QueryParams, Value } from "../params"
-import type { ColumnName, RelationName, RelationTableName, Schema, TableDefinition, TableName } from "../schema"
+import type { ColumnName, RelationFromKey, RelationName, RelationTableName, RelationToKey, Schema, TableDefinition, TableName } from "../schema"
 import type { UniqueArray, ArrayToList, Prettify, UnionToTuple, FlattenArray } from "../helpers.d"
 
 // Helper: Get SQL column name for nested relations
@@ -113,7 +113,9 @@ type _QueryParamsToItem<S extends Schema, T extends TableName<S>, SS extends str
                 U extends string
                     ? U extends `${infer A}.${infer B}`
                         ? A extends RelationName<S, T>
-                            ? _QueryParamsToItem<S, RelationTableName<S, T, A>, [B]>
+                            ? RelationFromKey<S, T, A> extends ColumnName<S, T> ? 
+                                _QueryParamsToItem<S, RelationTableName<S, T, A>, [B]> :
+                                _QueryParamsToItem<S, RelationTableName<S, T, A>, [B]>[]
                             : never
                         : U extends keyof TableDefinition<S, T>
                             ? TableDefinition<S, T>[U]

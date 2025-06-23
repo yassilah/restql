@@ -39,6 +39,10 @@ export type RelationName<S extends Schema, T extends TableName<S>> = keyof S[T][
 
 export type RelationTableName<S extends Schema, T extends TableName<S>, R extends RelationName<S, T>> = NonNullable<S[T]['relations']>[R]['table']
 
+export type RelationToKey<S extends Schema, T extends TableName<S>, R extends RelationName<S, T>> = NonNullable<S[T]['relations']>[R]['toKey']
+
+export type RelationFromKey<S extends Schema, T extends TableName<S>, R extends RelationName<S, T>> = NonNullable<S[T]['relations']>[R]['fromKey']
+
 export type FieldName<S extends Schema, F extends TableName<S>, FF extends TableName<S> = F> = Exclude<ColumnName<S, F>, RelationName<S, F>> | {
     [K in RelationName<S, F>]: K extends string ? 
         RelationTableName<S, F, K> extends FF ? never 

@@ -25,7 +25,7 @@ const sql = find.sql('countries', {
         }
     }]
   },
-  orderBy: ['-cities.name'],
+  orderBy: ['cities.name', 'region.planet.id'],
   limit: 10,
   offset: 5,
 })
