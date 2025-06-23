@@ -1,43 +1,54 @@
-import { Condition, ConditionTree, QueryParams, Schema } from ".."
+import type { QueryParams } from "../types/params"
+import type { Schema } from "../types/schema"
+import type { FindFunction } from "../types/sql/find"
 
-export function sqlite(schema: Record<string, any> = {}) {
-    return (params: QueryParams): string => {
-        const { select, from, where = {}, orderBy, limit, offset, groupBy, join } = params
+export function sqlite<const S extends Schema>(schema: S) {
+    const find = function (table: string, params: QueryParams<S>) {
+        // const { select, where = {}, orderBy, limit, offset, groupBy } = params
 
-        const blocks: string[] =  []
+        // const blocks: string[] =  []
         
-        blocks.push(`SELECT ${select.map(item => normalizeColumn(item, from, schema)).join(', ')}`)
-        blocks.push(`FROM ${wrap(from)}`)
+        // blocks.push(`SELECT ${select.map(item => normalizeColumn(item, from, schema)).join(', ')}`)
+        // blocks.push(`FROM ${wrap(from)}`)
 
-        if (join.length) {
-           blocks.push(...join.flatMap(addJoinClauses(schema, from)))
+        // if (join.length) {
+        //    blocks.push(...join.flatMap(addJoinClauses(schema, from)))
+        // }
+
+        // blocks.push(addWhereClauses(where, from, schema, true))
+
+        // if (groupBy.length) {
+        //     blocks.push(`GROUP BY ${groupBy.map(item => normalizeColumn(item, from, schema)).join(', ')}`)
+        // }
+
+        // if (orderBy.length) {
+        //     blocks.push(`ORDER BY ${orderBy.map(item => {
+        //         const dir = item.startsWith('-') ? 'DESC' : 'ASC'
+        //         const col = normalizeColumn(dir === 'DESC' ? item.slice(1) : item, from, schema)
+        //         return [col, dir].join(' ')
+        //     }).join(', ')}`)
+        // }
+
+        // if (limit) {
+        //     blocks.push(`LIMIT ${limit}`)
+        // }
+
+        // if (offset) {
+        //     blocks.push(`OFFSET ${offset}`)
+        // }
+
+        // return blocks.join(' ').trim()
+    } as FindFunction<S>
+
+    Object.assign(find.prototype, {
+        sql(table: string, params: QueryParams<S>) {
+            return ''
         }
+    })
 
-        blocks.push(addWhereClauses(where, from, schema, true))
-
-        if (groupBy.length) {
-            blocks.push(`GROUP BY ${groupBy.map(item => normalizeColumn(item, from, schema)).join(', ')}`)
-        }
-
-        if (orderBy.length) {
-            blocks.push(`ORDER BY ${orderBy.map(item => {
-                const dir = item.startsWith('-') ? 'DESC' : 'ASC'
-                const col = normalizeColumn(dir === 'DESC' ? item.slice(1) : item, from, schema)
-                return [col, dir].join(' ')
-            }).join(', ')}`)
-        }
-
-        if (limit) {
-            blocks.push(`LIMIT ${limit}`)
-        }
-
-        if (offset) {
-            blocks.push(`OFFSET ${offset}`)
-        }
-
-        return blocks.join(' ').trim()
-    }
+    return { find }
 }
+
 
 /**
  * Normalize column.

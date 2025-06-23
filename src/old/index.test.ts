@@ -35,4 +35,6 @@ test('toQueryParams', () => {
         offset: 0,
         groupBy: [] 
     })
+
+    toQueryParams('?from=table&select=id&select=name&limit=10&orderBy=-name&where={$and:[{$eq:[id,1],$or:[{$neq:[id,2],$gt:[id,4]}]}]}').where.$and
 })

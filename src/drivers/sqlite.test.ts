@@ -1,6 +1,6 @@
 import { withQuery } from "ufo";
 import { describe, expect, it, test } from "vitest";
-import { createInstance, toQueryParams, toRawSQL } from "..";
+import { createInstance, toQueryParams, toRawSQL } from "../old";
 import { sqlite } from "./sqlite";
 
 describe("sqlite", () => {
