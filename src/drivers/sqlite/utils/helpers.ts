@@ -307,8 +307,8 @@ export type WhereClauses<S extends Schema, T extends TableName<S>, C extends Con
     ], ' AND '>
     : W
 
-type _Item<S extends Schema, T extends TableName<S>, SS extends string[], I = {}> =
-    SS extends [infer U, ...infer Rest]
+type _Item<S extends Schema, T extends TableName<S>, C extends string[], I = {}> =
+    C extends [infer U, ...infer Rest]
     ? I & {
         [K in U as U extends `${infer A}.${string}` ? A : U extends string ? U : never]:
         U extends string
@@ -323,5 +323,4 @@ type _Item<S extends Schema, T extends TableName<S>, SS extends string[], I = {}
     } & (Rest extends string[] ? _Item<S, T, Rest> : {})
     : I
 
-export type Item<S extends Schema, T extends TableName<S>, SS extends QueryParams<S, T>['columns']> =
-    SS extends string[] ? Prettify<_Item<S, T, SS>> : TableDefinition<S, T, false>
+export type Item<S extends Schema, T extends TableName<S>, C extends QueryParams<S, T>['columns']> = C extends string[] ? Prettify<_Item<S, T, C>> : TableDefinition<S, T, false>

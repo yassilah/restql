@@ -11,7 +11,7 @@ import type { QueryParams as FindOneParams } from "./find-one";
  * Create a SQLite database instance with the default connector.
  */
 export const sqlite = <const S extends Schema>(schema: S, db = createDefaultDb()) => {
-    const find = <T extends TableName<S>, P extends QueryParams<S, T>>(table: T, params: P) => {
+    const find = <T extends TableName<S>, const P extends QueryParams<S, T>>(table: T, params: P) => {
         return db.sql<Item<S, T, P['columns']>[]>`${_findRaw(schema, table, params)}`;
     }
 
@@ -19,7 +19,7 @@ export const sqlite = <const S extends Schema>(schema: S, db = createDefaultDb()
         return _findRaw(schema, table, params);
     }
 
-    const findOne = <T extends TableName<S>, const K extends PrimaryKeyValue<S, T>, P extends FindOneParams<S, T>>(table: T, primaryKey: K, params: P) => {
+    const findOne = <T extends TableName<S>, const K extends PrimaryKeyValue<S, T>, const P extends FindOneParams<S, T>>(table: T, primaryKey: K, params: P) => {
         return db.sql<Item<S, T, P['columns']>>`${_findOneRaw(schema, table, primaryKey, params)}`;
     }
 

@@ -12,7 +12,7 @@ const item = await findOne('countries', 'FRA', {
   }
 })
 
-const sql = await find.raw('countries', {
+const sql = await find('countries', {
   columns: ['name', 'region.planet.type', 'region.name'],
   where: {
     'region.name': {
