@@ -1,23 +1,23 @@
-import type { ArrayToList, Prettify, UnionToTuple, UniqueArray } from "../../types/helpers";
-import type { Condition, ConditionTree, QueryParams } from "../../types/params";
-import type { FieldName, Relation, RelationDefinition, RelationName, RelationTableName, Schema, TableDefinition, TableName } from "../../types/schema";
+import type { ArrayToList, Prettify, UnionToTuple, UniqueArray } from "@/types/helpers";
+import type { Condition, ConditionTree, QueryParams } from "@/types/params";
+import type { FieldName, Relation, RelationDefinition, RelationName, RelationTableName, Schema, TableDefinition, TableName } from "@/types/schema";
 
 /**
  * SQL Operators.
  */
 export const OPERATORS = {
-    '$eq': value => `= ${normalizeOperationValue(value)}`,
-    '$neq': value => `!= ${normalizeOperationValue(value)}`,
-    '$gt': value => `> ${value}`,
-    '$gte': value => `>= ${value}`,
-    '$lt': value => `< ${value}`,
-    '$lte': value => `<= ${value}`,
-    '$like': value => `LIKE ${normalizeOperationValue(value)}`,
-    '$nlike': value => `NOT LIKE ${normalizeOperationValue(value)}`,
-    '$in': (...value) => `IN (${join(value.map(normalizeOperationValue), ', ')})`,
-    '$nin': (...value) => `NOT IN (${join(value.map(normalizeOperationValue), ', ')})`,
-    '$between': (...value) => `BETWEEN ${value[0]} AND ${value[1]}`,
-    '$nbetween': (...value) => `NOT BETWEEN ${value[0]} AND ${value[1]}`,
+    '$eq': (value: unknown) => `= ${normalizeOperationValue(value)}`,
+    '$neq':  (value: unknown) => `!= ${normalizeOperationValue(value)}`,
+    '$gt':  (value: unknown) => `> ${value}`,
+    '$gte':  (value: unknown) => `>= ${value}`,
+    '$lt':  (value: unknown) => `< ${value}`,
+    '$lte':  (value: unknown) => `<= ${value}`,
+    '$like':  (value: unknown) => `LIKE ${normalizeOperationValue(value)}`,
+    '$nlike':  (value: unknown) => `NOT LIKE ${normalizeOperationValue(value)}`,
+    '$in': (...value: unknown[]) => `IN (${join(value.map(normalizeOperationValue), ', ')})`,
+    '$nin': (...value: unknown[]) => `NOT IN (${join(value.map(normalizeOperationValue), ', ')})`,
+    '$between': (...value: unknown[]) => `BETWEEN ${value[0]} AND ${value[1]}`,
+    '$nbetween': (...value: unknown[]) => `NOT BETWEEN ${value[0]} AND ${value[1]}`,
 }
 
 /**
@@ -181,7 +181,7 @@ export function getOrderByClauses<S extends Schema, T extends TableName<S>, C ex
 /**
  * Get where clause.
  */
-export function getWhereClauses<S extends Schema, T extends TableName<S>, const C extends Condition | ConditionTree<S, T>>(schema: S, table: T, condition: C) {
+export function getWhereClauses<S extends Schema, T extends TableName<S>, const C extends Condition | ConditionTree<S, T>>(schema: S, table: T, condition: C): WhereClauses<S, T, C>  | '' {
     return join(Object.entries(condition).flatMap(([key, value]) => {
         if (key === '$and' && Array.isArray(value)) {
             return `(${join(value.flatMap(v => getWhereClauses(schema, table, v)), ' AND ')})`;
@@ -191,14 +191,15 @@ export function getWhereClauses<S extends Schema, T extends TableName<S>, const 
             const column = normalizeColumn(schema, table, key);
             return Object.entries(value).flatMap(([operator, val]) => {
                 if (operator in OPERATORS) {
-                    return `${column} ${OPERATORS[operator](val)}`;
+                    const fn = OPERATORS[operator as keyof typeof OPERATORS];
+                    return `${column} ${fn(val)}`;
                 }
                 return getWhereClauses(schema, table, { [operator]: val });
             })
         }
 
         return []
-    }), ' AND ') as WhereClauses<S, T, C>;
+    }), ' AND ')
 }
 
 /**

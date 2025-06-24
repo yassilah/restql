@@ -82,3 +82,11 @@ type ColumnTypeToTsType<T extends ColumnTypes> =
     T extends 'varchar' ? string :
     T extends 'timestamp' ? Date :
     T extends 'numeric' ? number : never;
+
+
+
+export type PrimaryKey<S extends Schema, T extends TableName<S>> = {
+    [K in keyof S[T]['columns']]: S[T]['columns'][K]['primaryKey'] extends true ? K : never
+}[keyof S[T]['columns']]
+
+export type PrimaryKeyValue<S extends Schema, T extends TableName<S>> = PrimaryKey<S, T> extends keyof Definition<S>[T] ? Definition<S>[T][PrimaryKey<S, T>] : never

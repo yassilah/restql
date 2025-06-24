@@ -1,9 +1,18 @@
 import { sqlite } from "../src/drivers/sqlite"
 import schema from "./schema"
 
-const { find } = sqlite(schema)
+const { find, findOne } = sqlite(schema)
 
-const sql = await find('countries', {
+const item = await findOne('countries', 'FRA', {
+  columns: ['name', 'region.planet.type', 'region.name'],
+  where: {
+    'region.name': {
+        '$nin': ['Europe', 'cool']
+      }
+  }
+})
+
+const sql = await find.raw('countries', {
   columns: ['name', 'region.planet.type', 'region.name'],
   where: {
     'region.name': {
@@ -17,7 +26,7 @@ const sql = await find('countries', {
         '$like': '%some-country-name%'
       },
       'region.name': {
-        '$neq': 'Europe'
+        '$nin': ['Europe']
       }
     }, {
       'code': {
