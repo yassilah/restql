@@ -1,6 +1,6 @@
-import type { ArrayToList, UnionToTuple, UniqueArray } from "../../types/helpers";
+import type { ArrayToList, Prettify, UnionToTuple, UniqueArray } from "../../types/helpers";
 import type { Condition, ConditionTree, QueryParams } from "../../types/params";
-import type { FieldName, Relation, RelationDefinition, Schema, TableName } from "../../types/schema";
+import type { FieldName, Relation, RelationDefinition, RelationName, RelationTableName, Schema, TableDefinition, TableName } from "../../types/schema";
 
 /**
  * SQL Operators.
@@ -262,7 +262,7 @@ export type OrderByClauses<S extends Schema, T extends TableName<S>, C extends s
 
 export type Normalize<T> =
     T extends string ? `'${T}'`
-        : T extends number | bigint | boolean | null | undefined ? `${T}`
+    : T extends number | bigint | boolean | null | undefined ? `${T}`
     : never
 
 export type NormalizeArray<T extends unknown[]> = T extends [infer U, ...infer Last] ? [Normalize<U>, ...NormalizeArray<Last>] : []
@@ -296,12 +296,31 @@ export type WhereClauses<S extends Schema, T extends TableName<S>, C extends Con
         ...UnionToTuple<`(${{
             [K in keyof C]:
             K extends '$and'
-            ? ArrayToList<[W, ...UnionToTuple<`(${WhereClauses<S, T, C['$and'][number], F>})`>], ' AND '>
+            ? ArrayToList<[W, ...UnionToTuple<`${WhereClauses<S, T, C['$and'][number], F>}`>], ' AND '>
             : K extends '$or'
-            ? ArrayToList<[W, ...UnionToTuple<`(${WhereClauses<S, T, C['$or'][number], F>})`>], ' OR '>
+            ? ArrayToList<[W, ...UnionToTuple<`${WhereClauses<S, T, C['$or'][number], F>}`>], ' OR '>
             : K extends string
             ? WhereClauses<S, T, C[K], NormalizedColumn<S, T, K>>
             : never
         }[keyof C]})`>
     ], ' AND '>
     : W
+
+type _Item<S extends Schema, T extends TableName<S>, SS extends string[], I = {}> =
+    SS extends [infer U, ...infer Rest]
+    ? I & {
+        [K in U as U extends `${infer A}.${string}` ? A : U extends string ? U : never]:
+        U extends string
+        ? U extends `${infer A}.${infer B}`
+        ? A extends RelationName<S, T>
+        ? _Item<S, RelationTableName<S, T, A>, [B]>
+        : never
+        : U extends keyof TableDefinition<S, T>
+        ? TableDefinition<S, T>[U]
+        : never
+        : never
+    } & (Rest extends string[] ? _Item<S, T, Rest> : {})
+    : I
+
+export type Item<S extends Schema, T extends TableName<S>, SS extends QueryParams<S, T>['columns']> =
+    SS extends string[] ? Prettify<_Item<S, T, SS>> : TableDefinition<S, T, false>

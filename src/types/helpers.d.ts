@@ -40,6 +40,15 @@ type Push<T extends any[], V> = [...T, V];
 
 export type UnionToTuple<T, L = LastOf<T>> = [T] extends [never] ? [] : Push<UnionToTuple<Exclude<T, L>>, L>;
 
+// Wrap inside parentheses if the tuple has more than one element
+export type UnionToTupleWithParentheses<T, L = LastOf<T>> = 
+    [T] extends [never] ? [] :
+        Push<UnionToTupleWithParentheses<Exclude<T, L>>, L> extends infer R ? 
+            R extends any[] ? 
+                R['length'] extends 1 ? R : [`(${R[0]})`, ...R.slice(1)] 
+            : never 
+        : never;
+
 export type FlattenArray<T extends any[]> = T extends [infer First, ...infer Rest] ? 
     First extends any[] ?
         [...FlattenArray<First>, ...FlattenArray<Rest>]

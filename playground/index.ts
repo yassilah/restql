@@ -3,8 +3,7 @@ import schema from "./schema"
 
 const { find } = sqlite(schema)
 
-
-const sql = find('countries', {
+const sql = await find('countries', {
   columns: ['name', 'region.planet.type', 'region.name'],
   where: {
     'region.name': {
@@ -30,7 +29,3 @@ const sql = find('countries', {
   limit: 10,
   offset: 5,
 })
-
-const planets = find('planets', {
-  columns: ['name', 'type', 'regions.countries.name']
-}) 

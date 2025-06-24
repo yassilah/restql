@@ -4,6 +4,7 @@ import { describe } from "vitest";
 import { getAllJoinClauses, getJoinClauses, getWhereClauses, normalizeColumn } from "./helpers";
 import schema from "../../../playground/schema";
 import { expect } from "vitest";
+import { expectTypeOf } from "vitest";
 
 describe("sqlite", () => {
     it ('should normalize columns', () => {
@@ -76,6 +77,9 @@ describe("sqlite", () => {
         expect(result).toBe(
             "`countries`.`id` = 'some-uuid' AND `planets`.`type` NOT IN ('terrestrial', 'gas giant') AND (`cities`.`name` LIKE '%some-city-name%' AND (`regions`.`name` = 'Asia' OR `regions`.`name` = 'Europe'))"
         );
+
+        // TO FIX: remove unnecessary parentheses
+        expectTypeOf(result).toEqualTypeOf<"(`countries`.`id` = 'some-uuid') AND (`planets`.`type` NOT IN ('terrestrial', 'gas giant')) AND ((`cities`.`name` LIKE '%some-city-name%') AND ((`regions`.`name` = 'Asia') OR (`regions`.`name` = 'Europe')))">();
     });
 
     it('should create a join clauses', () => {

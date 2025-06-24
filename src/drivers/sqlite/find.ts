@@ -1,12 +1,26 @@
-import schema from "../../../playground/schema";
 import type { QueryParams } from "../../types/params";
 import type { Schema, TableName, FieldName } from "./../../types/schema";
-import { getAllJoinClauses, getOrderByClauses, getWhereClauses, Join, join, normalizeColumns, NormalizedColumns, OrderByClauses, trim, WhereClauses, WhereColumnClause, wrap } from "./helpers";
+import { Item, getAllJoinClauses, getOrderByClauses, getWhereClauses, Join, join, normalizeColumns, NormalizedColumns, OrderByClauses, trim, WhereClauses,  wrap } from "./helpers";
+import { Database } from 'sqlite3'
+
+const db = new Database(':memory:');
 
 /**
  * Write a SQL query to find records in a table with specified parameters.
  */
-export function find<S extends Schema, T extends TableName<S>, const P extends QueryParams<S, T>>(schema: S, table: T, params: P) {
+export function find<S extends Schema, T extends TableName<S>, P extends QueryParams<S, T>>(schema: S, table: T, params: P) {
+    return new Promise<Item<S, T, P['columns']>[]>((resolve, reject) => {
+        return db.run(findRaw(schema, table, params), (err) => {
+            if (err) reject(err);
+            return resolve(this)
+        })
+    })
+}
+
+/**
+ * Write a SQL query to find records in a table with specified parameters.
+ */
+export function findRaw<S extends Schema, T extends TableName<S>, const P extends QueryParams<S, T>>(schema: S, table: T, params: P) {
     return trim(join([
         select(schema, table, params.columns as P['columns']),
         from(table),
@@ -77,23 +91,3 @@ function where<S extends Schema, T extends TableName<S>, W extends QueryParams<S
     return (where ? `WHERE ${getWhereClauses(schema, table, where)}` : '') as W extends Record<string, any> ?
         `WHERE ${WhereClauses<S, T, W>}` : ''
 }
-
-const url = find(schema, 'countries', {
-    columns: ['name', 'id'],
-    orderBy: ['-region.id', 'cities.name'],
-    where: {
-        'id': { $eq: 'some-uuid' },
-        $and: [{
-            'region.planet.type': { $nin: ['terrestrial', 'gas giant', 1] }
-        }, {
-            $or: [
-                { "cities.name": { $like: '%some-city-name%' } },
-                { "region.name": { $eq: 'Asia' } },
-                { "region.name": { $eq: 'Europe' } }
-            ]
-        }]
-    },
-    groupBy: ['region.name'],
-    limit: 10,
-    offset: 5,
-})
