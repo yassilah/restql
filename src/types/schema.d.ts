@@ -1,9 +1,9 @@
 import { Prettify } from "./helpers"
 
 export interface Schema {
-     [table: string]: {
-         columns: {
-              [column: string]: {
+    [table: string]: {
+        columns: {
+            [column: string]: {
                 type: ColumnTypes
                 primaryKey?: boolean
                 unique?: boolean
@@ -11,8 +11,8 @@ export interface Schema {
                 default?: string | number | boolean | null
             }
         }
-         relations?: {
-              [relation: string]: {
+        relations?: {
+            [relation: string]: {
                 table: string
                 fromKey: string
                 toKey: string
@@ -35,20 +35,37 @@ export type TableName<S extends Schema = Schema> = keyof S & string;
 
 export type ColumnName<S extends Schema, T extends TableName<S>> = keyof S[T]['columns'] & string;
 
-export type RelationName<S extends Schema, T extends TableName<S>> = keyof S[T]['relations']
+type RelationName<S extends Schema, T extends TableName<S>> = keyof NonNullable<S[T]['relations']> & string;
 
-export type RelationTableName<S extends Schema, T extends TableName<S>, R extends RelationName<S, T>> = NonNullable<S[T]['relations']>[R]['table']
+type RelationTableName<S extends Schema, T extends TableName<S>, C extends RelationName<S, T>> =
+    C extends keyof NonNullable<S[T]['relations']> ? NonNullable<S[T]['relations']>[C]['table'] : never;
 
-export type RelationToKey<S extends Schema, T extends TableName<S>, R extends RelationName<S, T>> = NonNullable<S[T]['relations']>[R]['toKey']
+type RelationDefinition<S extends Schema, T extends TableName<S>, C extends RelationName<S, T>> = {
+    fromTable: T
+    toTable: NonNullable<S[T]['relations']>[C]['table']
+    fromKey: NonNullable<S[T]['relations']>[C]['fromKey']
+    toKey: NonNullable<S[T]['relations']>[C]['toKey']
+}
 
-export type RelationFromKey<S extends Schema, T extends TableName<S>, R extends RelationName<S, T>> = NonNullable<S[T]['relations']>[R]['fromKey']
+export type Relation<S extends Schema, T extends TableName<S>, C extends FieldName<S, T>, D extends RelationDefinition<any, any, any>[] = []> =
+    C extends `${infer A}.${infer B}.${infer C}` ?
+        Relation<S, RelationTableName<S, T, A>, `${B}.${C}` & FieldName, [...D, RelationDefinition<S, T, A>]> :
+    C extends `${infer A}.${string}` ?
+        [...D, RelationDefinition<S, T, A>] :
+    C extends RelationName<S, T> ? 
+        [...D, RelationDefinition<S, T, C>] 
+: never
 
-export type FieldName<S extends Schema, F extends TableName<S>, FF extends TableName<S> = F> = Exclude<ColumnName<S, F>, RelationName<S, F>> | {
-    [K in RelationName<S, F>]: K extends string ? 
-        RelationTableName<S, F, K> extends FF ? never 
-        : RelationTableName<S, F, K> extends string ? `${K}.${FieldName<S, RelationTableName<S, F, K>, FF | K>}`
-    : never : never
-}[RelationName<S, F>]
+export type FieldName<S extends Schema = Schema, F extends TableName<S> = TableName<S>, FF extends TableName<S> = F> =
+    Exclude<ColumnName<S, F>, RelationName<S, F>> | {
+        [K in RelationName<S, F>]: K extends string
+        ? RelationTableName<S, F, K> extends FF
+        ? never
+        : RelationTableName<S, F, K> extends string
+        ? `${K}.${FieldName<S, RelationTableName<S, F, K>, FF | K>}`
+        : never
+        : never
+    }[RelationName<S, F>]
 
 type ColumnTypes = 'text' | 'float4' | 'boolean' | 'date' | 'json' | 'int4' | 'int8' | 'timestamptz' | 'uuid' | 'varchar' | 'timestamp' | 'numeric';
 

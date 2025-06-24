@@ -5,8 +5,8 @@ export default defineSchema({
         relations: {
             country: {
                 table: 'countries',
-                fromKey: 'country', 
-                toKey: 'id'
+                fromKey: 'id', 
+                toKey: 'country'
             }
         },
         columns: {
@@ -19,13 +19,13 @@ export default defineSchema({
         relations: {
             region: {
                 table: 'regions',
-                fromKey: 'id', 
-                toKey: 'region' 
+                fromKey: 'region', 
+                toKey: 'id' 
             },
             cities: {
                 table: 'cities',
-                fromKey: 'country',
-                toKey: 'id'
+                fromKey: 'id',
+                toKey: 'country'
             },
         },
         columns: {
@@ -53,13 +53,13 @@ export default defineSchema({
         relations: {
             countries: {
                 table: 'countries',
-                fromKey: 'region', 
-                toKey: 'id'
+                fromKey: 'id', 
+                toKey: 'region'
             },
             planet: {
                 table: 'planets',
-                fromKey: 'id', 
-                toKey: 'planet'
+                fromKey: 'planet', 
+                toKey: 'id'
             }
         }   
     },
@@ -72,7 +72,8 @@ export default defineSchema({
         relations: {
             regions: {
                 table: 'regions',
-                fromKey: 'planet', toKey: 'id'
+                fromKey: 'id', 
+                toKey: 'region'
             }
         }
     }

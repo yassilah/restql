@@ -32,24 +32,18 @@ export type Prettify<T> = {
     [K in keyof T]: T[K] extends object ? T[K] extends { [Symbol.toPrimitive]: any } ? T[K] : Prettify<T[K]> : T[K]
 } & {}
 
-type UnionToIntersection<U> = 
-  (U extends any ? (k: U) => void : never) extends 
-  (k: infer I) => void ? I : never;
+type UnionToIntersection<U> =  (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
-type LastOf<T> = 
-  UnionToIntersection<
-    T extends any ? (x: T) => void : never
-  > extends (x: infer Last) => void ? Last : never;
+type LastOf<T> =  UnionToIntersection<T extends any ? (x: T) => void : never> extends (x: infer Last) => void ? Last : never;
 
 type Push<T extends any[], V> = [...T, V];
 
-export type UnionToTuple<T, L = LastOf<T>> = 
-  [T] extends [never] 
-    ? [] 
-    : Push<UnionToTuple<Exclude<T, L>>, L>;
+export type UnionToTuple<T, L = LastOf<T>> =  [T] extends [never]  ? [] : Push<UnionToTuple<Exclude<T, L>>, L>;
 
 export type FlattenArray<T extends any[]> = T extends [infer First, ...infer Rest] ? 
     First extends any[] ?
         [...FlattenArray<First>, ...FlattenArray<Rest>]
     : [First, ...FlattenArray<Rest>]
 : T;
+
+export type Combine<T extends any[]> = FlattenArray<UnionToTuple<T>>;
