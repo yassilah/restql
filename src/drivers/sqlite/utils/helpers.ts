@@ -1,6 +1,6 @@
 import type { ArrayToList, Prettify, UnionToTuple, UniqueArray } from "@/types/helpers";
 import type { Condition, ConditionTree, QueryParams } from "@/types/params";
-import type { FieldName, Relation, RelationDefinition, RelationName, RelationTableName, Schema, TableDefinition, TableName } from "@/types/schema";
+import type { FieldName, PrimaryKey, PrimaryKeyValue, Relation, RelationDefinition, RelationName, RelationTableName, Schema, TableDefinition, TableName } from "@/types/schema";
 
 /**
  * SQL Operators.
@@ -18,6 +18,28 @@ export const OPERATORS = {
     '$nin': (...value: unknown[]) => `NOT IN (${join(value.map(normalizeOperationValue), ', ')})`,
     '$between': (...value: unknown[]) => `BETWEEN ${value[0]} AND ${value[1]}`,
     '$nbetween': (...value: unknown[]) => `NOT BETWEEN ${value[0]} AND ${value[1]}`,
+}
+
+/**
+ * Get primaryKey
+ */
+export function getPrimaryKey<S extends Schema, T extends TableName<S>>(schema: S, table: T) {
+    return Object.entries(schema[table].columns).find(([_, v]) => v.primaryKey)?.[0] as PrimaryKey<S, T> | undefined;
+}
+
+/**
+ * Add a primary key condition to the where clause.
+ */
+export function addPrimaryKeyCondition<S extends Schema, T extends TableName<S>, const K extends PrimaryKeyValue<S, T>, const P extends QueryParams<S, T>>(schema: S, table: T, key: K, params: P = {} as P) {
+    const primaryKey = getPrimaryKey(schema, table);
+
+    if (!primaryKey) throw new Error(`Primary key not found for table ${table}`);
+
+    params.where ??= {}
+    
+    Object.assign(params.where, { [primaryKey]: { $eq: key } });
+
+    return params.where as P['where'] & Record<PrimaryKey<S, T>, { $eq: K }>
 }
 
 /**
@@ -323,4 +345,4 @@ type _Item<S extends Schema, T extends TableName<S>, C extends string[], I = {}>
     } & (Rest extends string[] ? _Item<S, T, Rest> : {})
     : I
 
-export type Item<S extends Schema, T extends TableName<S>, C extends QueryParams<S, T>['columns']> = C extends string[] ? Prettify<_Item<S, T, C>> : TableDefinition<S, T, false>
+export type Item<S extends Schema, T extends TableName<S>, C extends QueryParams<S, T>['columns']|undefined = undefined> = C extends string[] ? Prettify<_Item<S, T, C>> : TableDefinition<S, T, false>

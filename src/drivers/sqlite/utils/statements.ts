@@ -1,13 +1,50 @@
 import type { QueryParams } from "@/types/params"
 import type { FieldName, Schema, TableName } from "@/types/schema"
-import { getAllJoinClauses, getOrderByClauses, getWhereClauses, Join, join, normalizeColumns, NormalizedColumns, OrderByClauses, WhereClauses, wrap } from "./helpers"
-
+import { getAllJoinClauses, getOrderByClauses, getWhereClauses, Item, Join, join, Normalize, normalizeColumns, NormalizedColumns, normalizeOperationValue, OrderByClauses, WhereClauses, Wrap, wrap } from "./helpers"
+import { UnionToTuple } from "@/types/helpers"
 
 /**
  * SQL Select statement for the specified table and columns.
  */
 export function select<S extends Schema, T extends TableName<S>, C extends FieldName<S, T>[] | undefined>(schema: S, table: T, columns?: C) {
     return `SELECT ${normalizeColumns(schema, table, columns)}` as const
+}
+
+/**
+ * SQL Update statement for the specified table.
+ */
+export function update<T extends TableName<Schema>>(table: T) {
+    return `UPDATE ${wrap(table)}` as const
+}
+
+/**
+ * SQL Remove statement for the specified table.
+ */
+export function remove<T extends TableName<Schema>>(table: T) {
+    return `DELETE FROM ${wrap(table)}` as const
+}
+
+/**
+ * SQL Insert statement for the specified table.
+ */
+export function insert<T extends TableName<Schema>>(table: T) {
+    return `INSERT INTO ${wrap(table)}` as const
+}
+
+/**
+ * SQL Values statement for the specified item.
+ */
+export function values<S extends Schema, T extends TableName<S>, I extends Partial<Item<S, T>>>(item: I) {
+    return `(${join(Object.keys(item), ', ')}) VALUES (${join(Object.values(item).map(normalizeOperationValue), ', ')})` as `(${Join<UnionToTuple<{ [K in keyof I]: Wrap<K & string> }[keyof I]>>}) VALUES (${Join<UnionToTuple<{ [K in keyof I]: Normalize<I[K]> }[keyof I]>>})`
+}
+
+/**
+ * SQL Set statement for the specified table and item.
+ */
+export function set<S extends Schema, T extends TableName<S>, I extends Partial<Item<S, T>>>(item: I) {
+    return `SET ${join(Object.entries(item).map(([key, value]) => `${wrap(key)} = ${normalizeOperationValue(value)}`), ', ')}` as `SET ${Join<UnionToTuple<{ 
+        [K in keyof I]: `${Wrap<K & string>} = ${Normalize<I[K]>}` 
+    }[keyof I]>>}`
 }
 
 /**

@@ -29,9 +29,8 @@ export default defineSchema({
             },
         },
         columns: {
-            id: { type: 'uuid', primaryKey: true, notNull: true },
+            code: { type: 'varchar', primaryKey: true, notNull: true },
             name: { type: 'text', notNull: true },
-            code: { type: 'varchar', unique: true, notNull: true },
             region: { type: 'uuid', notNull: true },
             created_at: { type: 'timestamptz', default: 'now()', notNull: true },
         },
