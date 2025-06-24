@@ -40,21 +40,21 @@ type RelationName<S extends Schema, T extends TableName<S>> = keyof NonNullable<
 type RelationTableName<S extends Schema, T extends TableName<S>, C extends RelationName<S, T>> =
     C extends keyof NonNullable<S[T]['relations']> ? NonNullable<S[T]['relations']>[C]['table'] : never;
 
-type RelationDefinition<S extends Schema, T extends TableName<S>, C extends RelationName<S, T>> = {
+type RelationDefinition<S extends Schema, T extends TableName<S>, C extends RelationName<S, T> | string> = {
     fromTable: T
     toTable: NonNullable<S[T]['relations']>[C]['table']
     fromKey: NonNullable<S[T]['relations']>[C]['fromKey']
     toKey: NonNullable<S[T]['relations']>[C]['toKey']
 }
 
-export type Relation<S extends Schema, T extends TableName<S>, C extends FieldName<S, T>, D extends RelationDefinition<any, any, any>[] = []> =
+export type Relation<S extends Schema, T extends TableName<S>, C extends FieldName<S, T> | string, D extends RelationDefinition<any, any, any>[] = []> =
     C extends `${infer A}.${infer B}.${infer C}` ?
-        Relation<S, RelationTableName<S, T, A>, `${B}.${C}` & FieldName, [...D, RelationDefinition<S, T, A>]> :
+        Relation<S, RelationTableName<S, T, A>, `${B}.${C}`, [...D, RelationDefinition<S, T, A>]> :
     C extends `${infer A}.${string}` ?
         [...D, RelationDefinition<S, T, A>] :
     C extends RelationName<S, T> ? 
         [...D, RelationDefinition<S, T, C>] 
-: never
+: D
 
 export type FieldName<S extends Schema = Schema, F extends TableName<S> = TableName<S>, FF extends TableName<S> = F> =
     Exclude<ColumnName<S, F>, RelationName<S, F>> | {
