@@ -1,5 +1,6 @@
-import type { Item, Join, Normalize, NormalizedColumns, OrderByClauses, WhereClauses, Wrap } from './helpers'
-import type { UnionToTuple } from '@/types/helpers'
+import type { UnionToTuple } from 'type-fest'
+import type { Item, Normalize, NormalizedColumns, OrderByClauses, WhereClauses, Wrap } from './helpers'
+import type { CleanJoin } from '@/types/helpers'
 import type { QueryParams } from '@/types/params'
 import type { FieldName, Schema, TableName } from '@/types/schema'
 import { getAllJoinClauses, getOrderByClauses, getWhereClauses, join, normalizeColumns, normalizeOperationValue, wrap } from './helpers'
@@ -36,16 +37,18 @@ export function insert<T extends TableName<Schema>>(table: T) {
  * SQL Values statement for the specified item.
  */
 export function values<S extends Schema, T extends TableName<S>, I extends Partial<Item<S, T>>>(item: I) {
-   return `(${join(Object.keys(item), ', ')}) VALUES (${join(Object.values(item).map(normalizeOperationValue), ', ')})` as `(${Join<UnionToTuple<{ [K in keyof I]: Wrap<K & string> }[keyof I]>>}) VALUES (${Join<UnionToTuple<{ [K in keyof I]: Normalize<I[K]> }[keyof I]>>})`
+   return `(${join(Object.keys(item), ', ')}) VALUES (${join(Object.values(item).map(normalizeOperationValue), ', ')})` as `(${CleanJoin<
+      UnionToTuple<{ [K in keyof I]: Wrap<K & string> }[keyof I]>
+>}) VALUES (${CleanJoin<UnionToTuple<{ [K in keyof I]: Normalize<I[K]> }[keyof I]>, ', '>})`
 }
 
 /**
  * SQL Set statement for the specified table and item.
  */
 export function set<S extends Schema, T extends TableName<S>, I extends Partial<Item<S, T>>>(item: I) {
-   return `SET ${join(Object.entries(item).map(([key, value]) => `${wrap(key)} = ${normalizeOperationValue(value)}`), ', ')}` as `SET ${Join<UnionToTuple<{
-      [K in keyof I]: `${Wrap<K & string>} = ${Normalize<I[K]>}`
-   }[keyof I]>>}`
+   return `SET ${join(Object.entries(item).map(([key, value]) => `${wrap(key)} = ${normalizeOperationValue(value)}`), ', ')}` as `SET ${CleanJoin<
+      UnionToTuple<{ [K in keyof I]: `${Wrap<K & string>} = ${Normalize<I[K]>}` }[keyof I]>
+>}`
 }
 
 /**
@@ -81,7 +84,7 @@ export function joins<S extends Schema, T extends TableName<S>, P extends QueryP
  */
 export function groupBy<S extends Schema, T extends TableName<S>, C extends QueryParams<S, T>['groupBy']>(schema: S, table: T, columns?: C) {
    return (!columns?.length ? '' : `GROUP BY ${normalizeColumns(schema, table, columns)}`) as C extends string[]
-      ? `GROUP BY ${Join<NormalizedColumns<S, T, C>>}` : ''
+      ? `GROUP BY ${CleanJoin<NormalizedColumns<S, T, C>>}` : ''
 }
 
 /**
@@ -89,7 +92,7 @@ export function groupBy<S extends Schema, T extends TableName<S>, C extends Quer
  */
 export function orderBy<S extends Schema, T extends TableName<S>, C extends QueryParams<S, T>['orderBy']>(schema: S, table: T, columns?: C) {
    return (!columns?.length ? '' : `ORDER BY ${getOrderByClauses(schema, table, columns)}`) as C extends string[]
-      ? `ORDER BY ${Join<OrderByClauses<S, T, C>>}` : ''
+      ? `ORDER BY ${CleanJoin<OrderByClauses<S, T, C>>}` : ''
 }
 
 /**

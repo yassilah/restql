@@ -1,4 +1,4 @@
-import type { Prettify } from './helpers'
+import type { EmptyObject, Simplify } from 'type-fest'
 
 export interface Schema {
    [table: string]: {
@@ -25,9 +25,9 @@ type TableDefinition<S extends Schema, T extends TableName<S>, R extends boolean
    [C in ColumnName<S, T>]: ColumnTypeToTsType<S[T]['columns'][C]['type']>
 } & (R extends true ? {
    [R in RelationName<S, T>]?: TableDefinition<S, RelationTableName<S, T, R>>
-} : {})
+} : EmptyObject)
 
-export type Definition<S extends Schema, R extends boolean = true> = Prettify<{
+export type Definition<S extends Schema, R extends boolean = true> = Simplify<{
    [K in TableName<S>]: TableDefinition<S, K, R>
 }>
 

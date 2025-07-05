@@ -1,4 +1,6 @@
-import type { ArrayToList, Prettify, UnionToTuple, UniqueArray } from '@/types/helpers'
+import type { EmptyObject, Simplify, Trim, UnionToTuple } from 'type-fest'
+import type { JoinableItem } from 'type-fest/source/join'
+import type { CleanJoin, UniqueArray } from '@/types/helpers'
 import type { Condition, ConditionTree, QueryParams } from '@/types/params'
 import type { FieldName, PrimaryKey, PrimaryKeyValue, Relation, RelationDefinition, RelationName, RelationTableName, Schema, TableDefinition, TableName } from '@/types/schema'
 
@@ -59,8 +61,8 @@ export function unique<T extends unknown[]>(arr: T) {
 /**
  * Join a list of strings with a separator.
  */
-export function join<const T extends unknown[], S extends string>(arr: T, separator: S = ', ' as S) {
-   return arr.join(separator) as Join<T, S>
+export function join<const T extends JoinableItem[], S extends string>(arr: T, separator: S = ', ' as S) {
+   return arr.join(separator) as CleanJoin<T, S>
 }
 
 /**
@@ -78,24 +80,10 @@ export function prepend<T extends string, P extends string>(value: T, prefix: P)
 }
 
 /**
- * Append a string with another string.
- */
-export function append<T extends string, P extends string>(value: T, suffix: P) {
-   return `${value}${suffix}` as Append<T, P>
-}
-
-/**
  * Unprepend a string from another string.
  */
 export function unprepend<T extends string, P extends string>(value: T, prefix: P) {
    return (value.startsWith(prefix) ? value.slice(prefix.length) : value) as Unprepend<T, P>
-}
-
-/**
- * Unappend a string from another string.
- */
-export function unappend<T extends string, P extends string>(value: T, suffix: P) {
-   return (value.endsWith(suffix) ? value.slice(0, -suffix.length) : value) as Unappend<T, P>
 }
 
 /**
@@ -114,7 +102,7 @@ export function normalizeColumn<S extends Schema, T extends TableName<S>, const 
  * Normalizes a list of columns for SQL queries.
  */
 export function normalizeColumns<S extends Schema, T extends TableName<S>, F extends string[] | undefined>(schema: S, table: T, columns?: F) {
-   return join(columns?.map(col => normalizeColumn(schema, table, col)) ?? ['*']) as unknown as Join<NormalizedColumns<S, T, F>, ', '>
+   return join(columns?.map(col => normalizeColumn(schema, table, col)) ?? ['*']) as unknown as CleanJoin<NormalizedColumns<S, T, F>, ', '>
 }
 
 /**
@@ -242,32 +230,17 @@ export type NormalizedColumn<S extends Schema, T extends TableName<S>, C extends
           : `${Wrap<T>}.${Wrap<C>}`
 
 export type NormalizedColumns<S extends Schema, T extends TableName<S>, F extends string[] | undefined, Wildcard extends boolean = true>
-    = F extends string[] ? UnionToTuple<NormalizedColumn<S, T, F[number]>> : Wildcard extends true ? [NormalizedColumn<S, T, '*'>] : []
-
-export type Join<T extends unknown[], S extends string = ', '>
-    = T extends [infer First, ...infer Rest]
-       ? Rest extends []
-          ? `${First & string}`
-          : Rest extends string[]
-             ? `${First & string}${S}${Join<Rest, S>}`
-             : ''
-       : ''
+    = F extends string[]
+       ? UnionToTuple<NormalizedColumn<S, T, F[number]>>
+       : Wildcard extends true
+          ? [NormalizedColumn<S, T, '*'>]
+          : []
 
 export type Wrap<T extends string> = ReturnType<typeof wrap<T>>
 
-export type Trim<T extends string> = T extends `${infer Start}  ${infer End}`
-   ? Trim<`${Start} ${End}`>
-   : T extends `${infer Start} ` ? Trim<Start>
-      : T extends ` ${infer End}` ? Trim<End>
-         : T
-
 export type Unprepend<T extends string, P extends string> = T extends `${P}${infer R}` ? R : T
 
-export type Unappend<T extends string, P extends string> = T extends `${infer R}${P}` ? R : T
-
 export type Prepend<T extends string, P extends string> = `${P}${T}`
-
-export type Append<T extends string, P extends string> = `${T}${P}`
 
 export type JoinClauses<S extends Schema, T extends TableName<S>, C extends FieldName<S, T>> = UniqueArray<UnionToTuple<
     Relation<S, T, C> extends (infer U)[]
@@ -299,29 +272,29 @@ export type OperatorToSQL<O extends keyof typeof OPERATORS, V>
                    : O extends '$lte' ? `<= ${Normalize<V>}`
                       : O extends '$like' ? `LIKE ${Normalize<V>}`
                          : O extends '$nlike' ? `NOT LIKE ${Normalize<V>}`
-                            : O extends '$in' ? V extends any[] ? `IN (${ArrayToList<NormalizeArray<V>>})` : never
-                               : O extends '$nin' ? V extends any[] ? `NOT IN (${ArrayToList<NormalizeArray<V>>})` : never
+                            : O extends '$in' ? V extends any[] ? `IN (${CleanJoin<NormalizeArray<V>>})` : never
+                               : O extends '$nin' ? V extends any[] ? `NOT IN (${CleanJoin<NormalizeArray<V>>})` : never
                                   : O extends '$between' ? V extends any[] ? `BETWEEN ${Normalize<V[0]>} AND ${Normalize<V[1]>}` : never
                                      : O extends '$nbetween' ? V extends any[] ? `NOT BETWEEN ${Normalize<V[0]>} AND ${Normalize<V[1]>}` : never
                                         : never
 
 export type WhereColumnClause<F extends string, C extends Condition>
-    = ArrayToList<UnionToTuple<{
+    = CleanJoin<UnionToTuple<{
        [CC in keyof C]: CC extends keyof typeof OPERATORS ? `${F} ${OperatorToSQL<CC, C[CC]>}` : never
-    }[keyof C]>, ' AND '>
+    }[keyof C]> extends infer U extends JoinableItem[] ? U : never, ' AND '>
 
 export type WhereClauses<S extends Schema, T extends TableName<S>, C extends Condition | ConditionTree<S, T>, F extends string = '', W extends string = ''>
     = C extends Condition
        ? WhereColumnClause<F, C>
        : C extends Record<string, any>
-          ? ArrayToList<[
+          ? CleanJoin<[
              W,
              ...UnionToTuple<{
                 [K in keyof C]:
                 K extends '$and'
-                   ? `(${ArrayToList<[W, ...UnionToTuple<WhereClauses<S, T, C['$and'][number], F>>], ' AND '>})`
+                   ? `(${CleanJoin<[W, ...UnionToTuple<WhereClauses<S, T, C['$and'][number], F>>], ' AND '>})`
                    : K extends '$or'
-                      ? `(${ArrayToList<[W, ...UnionToTuple<WhereClauses<S, T, C['$or'][number], F>>], ' OR '>})`
+                      ? `(${CleanJoin<[W, ...UnionToTuple<WhereClauses<S, T, C['$or'][number], F>>], ' OR '>})`
                       : K extends string
                          ? WhereClauses<S, T, C[K], NormalizedColumn<S, T, K>>
                          : never
@@ -329,7 +302,7 @@ export type WhereClauses<S extends Schema, T extends TableName<S>, C extends Con
           ], ' AND '>
           : W
 
-type _Item<S extends Schema, T extends TableName<S>, C extends string[], I = {}>
+type _Item<S extends Schema, T extends TableName<S>, C extends string[], I = EmptyObject>
     = C extends [infer U, ...infer Rest] ? I & {
        [K in U as U extends `${infer A}.${string}` ? A : U extends string ? U : never]:
        U extends string
@@ -341,7 +314,7 @@ type _Item<S extends Schema, T extends TableName<S>, C extends string[], I = {}>
                 ? TableDefinition<S, T>[U]
                 : never
           : never
-    } & (Rest extends string[] ? _Item<S, T, Rest> : {})
+    } & (Rest extends string[] ? _Item<S, T, Rest> : EmptyObject)
        : I
 
-export type Item<S extends Schema, T extends TableName<S>, C extends QueryParams<S, T>['columns'] | undefined = undefined> = C extends string[] ? Prettify<_Item<S, T, C>> : TableDefinition<S, T, false>
+export type Item<S extends Schema, T extends TableName<S>, C extends QueryParams<S, T>['columns'] | undefined = undefined> = C extends string[] ? Simplify<_Item<S, T, C>> : TableDefinition<S, T, false>

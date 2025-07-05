@@ -1,10 +1,9 @@
-import type { PrependString } from './helpers'
 import type { FieldName, Schema, TableName } from './schema'
 
 export interface QueryParams<S extends Schema = Schema, F extends TableName<S> = TableName<S>> {
    columns?: FieldName<S, F>[]
    where?: ConditionTree<S, F>
-   orderBy?: PrependString<FieldName<S, F>, '' | '-'>[]
+   orderBy?: `${'' | '-'}${FieldName<S, F>}`[]
    groupBy?: FieldName<S, F>[]
    limit?: number
    offset?: number
