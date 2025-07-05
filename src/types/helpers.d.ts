@@ -1,58 +1,52 @@
+export type ArrayToList<T extends any[], S extends string = ', '>
+    = T extends [] ? ''
+       : T extends [infer U]
+          ? U extends string ? U
+             : ''
+          : T extends [infer U, ...infer Rest]
+             ? U extends string
+                ? U extends ''
+                   ? ArrayToList<Rest, S>
+                   : ArrayToList<Rest, S> extends ''
+                      ? U
+                      : `${U}${S}${ArrayToList<Rest, S>}`
+                : ArrayToList<Rest, S>
+             : ''
 
-export type ArrayToList<T extends any[], S extends string = ', '> = 
-    T extends [] ? '' : 
-        T extends [infer U] ? 
-            U extends string ? U : 
-            '' 
-        : T extends [infer U, ...infer Rest] ? 
-            U extends string ? 
-                U extends '' ?
-                    ArrayToList<Rest, S> :
-                ArrayToList<Rest, S> extends '' ? 
-                    U : 
-                `${U}${S}${ArrayToList<Rest, S>}` 
-            : ArrayToList<Rest, S> 
-        : ''
-        
-export type PrependArrayItems<T extends any[], U extends string> =  T extends (infer R)[] ? R extends string ? PrependString<R, U>[] : never : never
+export type PrependArrayItems<T extends any[], U extends string> = T extends (infer R)[] ? R extends string ? PrependString<R, U>[] : never : never
 
 export type PrependString<T extends string, U extends string> = `${U}${T}`
 
-export type UniqueArray<T extends any[]> = 
-    T extends [] ? [] : 
-        T extends [infer U, ...infer Rest] ?
-            U extends string ? 
-                U extends Rest[number] ?
-                    UniqueArray<Rest>
+export type UniqueArray<T extends any[]>
+    = T extends [] ? []
+       : T extends [infer U, ...infer Rest]
+          ? U extends string
+             ? U extends Rest[number]
+                ? UniqueArray<Rest>
                 : [U, ...UniqueArray<Rest>]
-            : UniqueArray<Rest>
-        : []
+             : UniqueArray<Rest>
+          : []
 
-export type Prettify<T> = { 
-    [K in keyof T]: T[K] extends object ? T[K] extends { [Symbol.toPrimitive]: any } ? T[K] : Prettify<T[K]> : T[K]
+export type Prettify<T> = {
+   [K in keyof T]: T[K] extends object ? T[K] extends { [Symbol.toPrimitive]: any } ? T[K] : Prettify<T[K]> : T[K]
 } & {}
 
-type UnionToIntersection<U> =  (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never
 
-type LastOf<T> = UnionToIntersection<T extends any ? (x: T) => void : never> extends (x: infer Last) => void ? Last : never;
+type LastOf<T> = UnionToIntersection<T extends any ? (x: T) => void : never> extends (x: infer Last) => void ? Last : never
 
-type Push<T extends any[], V> = [...T, V];
+type Push<T extends any[], V> = [...T, V]
 
-export type UnionToTuple<T, L = LastOf<T>> = [T] extends [never] ? [] : Push<UnionToTuple<Exclude<T, L>>, L>;
+export type UnionToTuple<T, L = LastOf<T>> = [T] extends [never] ? [] : Push<UnionToTuple<Exclude<T, L>>, L>
 
-// Wrap inside parentheses if the tuple has more than one element
-export type UnionToTupleWithParentheses<T, L = LastOf<T>> = 
-    [T] extends [never] ? [] :
-        Push<UnionToTupleWithParentheses<Exclude<T, L>>, L> extends infer R ? 
-            R extends any[] ? 
-                R['length'] extends 1 ? R : [`(${R[0]})`, ...R.slice(1)] 
-            : never 
-        : never;
+export type FlattenArray<T extends any[]> = T extends [infer First, ...infer Rest]
+   ? First extends any[]
+      ? [...FlattenArray<First>, ...FlattenArray<Rest>]
+      : [First, ...FlattenArray<Rest>]
+   : T
 
-export type FlattenArray<T extends any[]> = T extends [infer First, ...infer Rest] ? 
-    First extends any[] ?
-        [...FlattenArray<First>, ...FlattenArray<Rest>]
-    : [First, ...FlattenArray<Rest>]
-: T;
-
-export type CombineInto<T extends any[], U = any> = FlattenArray<UnionToTuple<T>> extends infer R ? R extends U[] ? R : never : never;
+export type CombineInto<T extends any[], U = any> = FlattenArray<UnionToTuple<T>> extends infer R
+   ? R extends U[]
+      ? R
+      : never
+   : never
