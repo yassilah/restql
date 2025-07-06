@@ -1,9 +1,8 @@
-import { sqlite } from '../src/drivers/sqlite'
+import sqlite from '@/drivers/sqlite'
 import schema from './schema'
 
 const { createOne } = sqlite(schema)
 
-const l = await createOne.raw('users', {
-   name: 'John Doe',
-   age: 30,
+const l = await createOne('users', {
+   name: 'Yassi',
 })

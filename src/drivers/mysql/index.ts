@@ -1,8 +1,8 @@
 import type { Schema } from '@/types/schema'
 import { createDatabase } from 'db0'
-import connector from 'db0/connectors/sqlite3'
+import connector from 'db0/connectors/mysql2'
+import { createOneRaw, findOneRaw, findRaw, removeOneRaw, removeRaw, updateOneRaw, updateRaw } from '@/drivers/sqlite/queries'
 import { defineDriver } from '@/index'
-import { createOneRaw, findOneRaw, findRaw, removeOneRaw, removeRaw, updateOneRaw, updateRaw } from './queries'
 
 export default defineDriver(<S extends Schema>(schema: S) => ({
    findRaw: findRaw(schema),
@@ -12,4 +12,4 @@ export default defineDriver(<S extends Schema>(schema: S) => ({
    createOneRaw: createOneRaw(schema),
    removeOneRaw: removeOneRaw(schema),
    removeRaw: removeRaw(schema),
-}), () => createDatabase(connector({ cwd: process.cwd() })))
+}), () => createDatabase(connector({ })))
