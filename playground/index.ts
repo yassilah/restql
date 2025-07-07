@@ -1,8 +1,8 @@
-import sqlite from '@/drivers/sqlite'
+import sqlite from 'restql/drivers/sqlite'
 import schema from './schema'
 
-const { createOne } = sqlite(schema)
+const { find } = sqlite(schema)
 
-const l = await createOne('users', {
-   name: 'Yassi',
+const l = await find.raw('countries', {
+   columns: ['code', 'region.name'],
 })

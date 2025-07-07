@@ -41,7 +41,7 @@ export function addPrimaryKeyCondition<S extends Schema, T extends TableName<S>,
 
    Object.assign(params.where, { [primaryKey]: { $eq: key } })
 
-   return params.where as P['where'] & Record<PrimaryKey<S, T>, { $eq: K }>
+   return params.where as WhereWithPrimaryKey<S, T, K, P>
 }
 
 /**
@@ -154,16 +154,12 @@ export function getJoinClauses<S extends Schema, T extends TableName<S>, C exten
 /**
  * Get all unique fields.
  */
-export function getAllFields<S extends Schema, T extends TableName<S>, P extends QueryParams<S, T>>(_schema: S, _table: T, params: P) {
+export function getAllFields<S extends Schema, T extends TableName<S>, P extends QueryParams<S, T>>(_schema: S, _table: T, params: P): AllFields<S, T, P> {
    return unique([
       ...(params.columns ?? []),
       ...(params.groupBy ?? []),
       ...(params.orderBy ?? []).map(col => unprepend(col, '-')),
-   ]) as UniqueArray<UnionToTuple<
-        (P['columns'] extends string[] ? P['columns'][number] : never)
-        | (P['groupBy'] extends string[] ? P['groupBy'][number] : never)
-        | (P['orderBy'] extends string[] ? Unprepend<P['orderBy'][number], '-'> : never)
-    >>
+   ]) as AllFields<S, T, P>
 }
 
 /**
@@ -172,7 +168,7 @@ export function getAllFields<S extends Schema, T extends TableName<S>, P extends
 export function getAllJoinClauses<S extends Schema, T extends TableName<S>, P extends QueryParams<S, T>>(schema: S, table: T, params: P) {
    const fields = getAllFields(schema, table, params)
 
-   return unique(fields.flatMap(col => getJoinClauses(schema, table, col))) as unknown as JoinClauses<S, T, typeof fields[number]>
+   return unique(fields.flatMap(col => getJoinClauses(schema, table, col))) as unknown as JoinClauses<S, T, AllFields<S, T, P>[number]>
 }
 
 /**
@@ -318,3 +314,13 @@ type _Item<S extends Schema, T extends TableName<S>, C extends string[], I = Emp
        : I
 
 export type Item<S extends Schema, T extends TableName<S>, C extends QueryParams<S, T>['columns'] | undefined = undefined> = C extends string[] ? Simplify<_Item<S, T, C>> : TableDefinition<S, T, false>
+
+export type WhereWithPrimaryKey<S extends Schema, T extends TableName<S>, K extends PrimaryKeyValue<S, T>, P extends QueryParams<S, T>>
+   = P['where'] & Record<PrimaryKey<S, T>, { $eq: K }>
+
+export type AllFields<S extends Schema, T extends TableName<S>, P extends QueryParams<S, T>>
+    = UniqueArray<UnionToTuple<
+        (P['columns'] extends string[] ? P['columns'][number] : never)
+        | (P['groupBy'] extends string[] ? P['groupBy'][number] : never)
+        | (P['orderBy'] extends string[] ? Unprepend<P['orderBy'][number], '-'> : never)
+    >>

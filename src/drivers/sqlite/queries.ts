@@ -1,6 +1,9 @@
+import type { Trim } from 'type-fest'
+import type { CleanJoin } from '@/types/helpers'
 import type { ConditionTree } from '@/types/params'
 import type { FieldName, PrimaryKeyValue, Schema, TableName } from '@/types/schema'
-import type { Item } from '@/utils/helpers'
+import type { Item, WhereWithPrimaryKey } from '@/utils/helpers'
+import type { From, GroupBy, Insert, Joins, Limit, Offset, OrderBy, Remove, Select, Set, Update, Values, Where } from '@/utils/statements'
 import { addPrimaryKeyCondition, join, trim } from '@/utils/helpers'
 import { from, groupBy, insert, joins, limit, offset, orderBy, remove, select, set, update, values, where } from '@/utils/statements'
 
@@ -16,7 +19,7 @@ export function findOneRaw<const S extends Schema>(schema: S) {
          from(table),
          joins(schema, table, params),
          where(schema, table, whereClause),
-      ], ' '))
+      ], ' ')) as FindOneRaw<S, T, K, P>
    }
 }
 
@@ -34,7 +37,7 @@ export function findRaw<const S extends Schema>(schema: S) {
          orderBy(schema, table, params.orderBy as P['orderBy']),
          limit(params.limit as P['limit']),
          offset(params.offset as P['offset']),
-      ], ' '))
+      ], ' ')) as FindRaw<S, T, P>
    }
 }
 
@@ -46,7 +49,7 @@ export function removeRaw<const S extends Schema>(schema: S) {
       return trim(join([
          remove(table),
          where(schema, table, params.where as P['where']),
-      ], ' '))
+      ], ' ')) as RemoveRaw<S, T, P>
    }
 }
 
@@ -60,7 +63,7 @@ export function removeOneRaw<const S extends Schema>(schema: S) {
       return trim(join([
          remove(table),
          where(schema, table, whereClause),
-      ], ' '))
+      ], ' ')) as RemoveOneRaw<S, T, K, P>
    }
 }
 
@@ -73,7 +76,7 @@ export function updateRaw<const S extends Schema>(schema: S) {
          update(table),
          set(item),
          where(schema, table, params.where as P['where']),
-      ], ' '))
+      ], ' ')) as UpdateRaw<S, T, I, P>
    }
 }
 
@@ -88,7 +91,7 @@ export function updateOneRaw<const S extends Schema>(schema: S) {
          update(table),
          set(item),
          where(schema, table, whereClause),
-      ], ' '))
+      ], ' ')) as UpdateOneRaw<S, T, K, I, P>
    }
 }
 
@@ -100,25 +103,70 @@ export function createOneRaw<const S extends Schema>(_schema: S) {
       return trim(join([
          insert(table),
          values(item),
-      ], ' '))
+      ], ' ')) as CreateOneRaw<S, T, I>
    }
 }
 
-export interface FindParams<S extends Schema = Schema, F extends TableName<S> = TableName<S>> {
-   columns?: FieldName<S, F>[]
-   where?: ConditionTree<S, F>
-   orderBy?: `${'' | '-'}${FieldName<S, F>}`[]
-   groupBy?: FieldName<S, F>[]
+export interface FindParams<S extends Schema = Schema, T extends TableName<S> = TableName<S>> {
+   columns?: FieldName<S, T>[]
+   where?: ConditionTree<S, T>
+   orderBy?: `${'' | '-'}${FieldName<S, T>}`[]
+   groupBy?: FieldName<S, T>[]
    limit?: number
    offset?: number
 }
 
-export type FindOneParams<S extends Schema = Schema, F extends TableName<S> = TableName<S>> = Pick<FindParams<S, F>, 'columns' | 'where'>
+export type FindOneParams<S extends Schema = Schema, T extends TableName<S> = TableName<S>> = Pick<FindParams<S, T>, 'columns' | 'where'>
 
-export type RemoveParams<S extends Schema = Schema, F extends TableName<S> = TableName<S>> = Pick<FindParams<S, F>, 'where'>
+export type RemoveParams<S extends Schema = Schema, T extends TableName<S> = TableName<S>> = Pick<FindParams<S, T>, 'where'>
 
-export type RemoveOneParams<S extends Schema = Schema, F extends TableName<S> = TableName<S>> = Pick<FindParams<S, F>, 'where'>
+export type RemoveOneParams<S extends Schema = Schema, T extends TableName<S> = TableName<S>> = Pick<FindParams<S, T>, 'where'>
 
-export type UpdateParams<S extends Schema = Schema, F extends TableName<S> = TableName<S>> = Pick<FindParams<S, F>, 'where'>
+export type UpdateParams<S extends Schema = Schema, T extends TableName<S> = TableName<S>> = Pick<FindParams<S, T>, 'where'>
 
-export type UpdateOneParams<S extends Schema = Schema, F extends TableName<S> = TableName<S>> = Pick<FindParams<S, F>, 'where'>
+export type UpdateOneParams<S extends Schema = Schema, T extends TableName<S> = TableName<S>> = Pick<FindParams<S, T>, 'where'>
+
+export type CreateOneRaw<S extends Schema, T extends TableName<S>, I extends Partial<Item<S, T>>> = Trim<CleanJoin<[
+   Insert<T>,
+   Values<S, T, I>,
+], ' '>>
+
+export type UpdateOneRaw<S extends Schema, T extends TableName<S>, K extends PrimaryKeyValue<S, T>, I extends Partial<Item<S, T>>, P extends UpdateOneParams<S, T>> = Trim<CleanJoin<[
+   Update<T>,
+   Set<S, T, I>,
+   Where<S, T, WhereWithPrimaryKey<S, T, K, P>>,
+], ' '>>
+
+export type UpdateRaw<S extends Schema, T extends TableName<S>, I extends Partial<Item<S, T>>, P extends UpdateParams<S, T>> = Trim<CleanJoin<[
+   Update<T>,
+   Set<S, T, I>,
+   Where<S, T, P['where']>,
+], ' '>>
+
+export type RemoveRaw<S extends Schema, T extends TableName<S>, P extends RemoveParams<S, T>> = Trim<CleanJoin<[
+   Remove<T>,
+   Where<S, T, P['where']>,
+], ' '>>
+
+export type RemoveOneRaw<S extends Schema, T extends TableName<S>, K extends PrimaryKeyValue<S, T>, P extends RemoveOneParams<S, T>> = Trim<CleanJoin<[
+   Remove<T>,
+   Where<S, T, WhereWithPrimaryKey<S, T, K, P>>,
+], ' '>>
+
+export type FindRaw<S extends Schema, T extends TableName<S>, P extends FindParams<S, T>> = Trim<CleanJoin<[
+   Select<S, T, P['columns']>,
+   From<S, T>,
+   Joins<S, T, P>,
+   Where<S, T, P['where']>,
+   GroupBy<S, T, P['groupBy']>,
+   OrderBy<S, T, P['orderBy']>,
+   Limit<P['limit']>,
+   Offset<P['offset']>,
+], ' '>>
+
+export type FindOneRaw<S extends Schema, T extends TableName<S>, K extends PrimaryKeyValue<S, T>, P extends FindOneParams<S, T>> = Trim<CleanJoin<[
+   Select<S, T, P['columns']>,
+   From<S, T>,
+   Joins<S, T, P>,
+   Where<S, T, WhereWithPrimaryKey<S, T, K, P>>,
+], ' '>>

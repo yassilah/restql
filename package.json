@@ -1,25 +1,44 @@
 {
    "name": "restql",
+   "type": "module",
    "version": "1.0.0",
    "packageManager": "pnpm@10.7.0+sha512.6b865ad4b62a1d9842b61d674a393903b871d9244954f652b8842c2b553c72176b278f64c463e52d40fff8aba385c235c8c9ecf5cc7de4fd78b8bb6d49633ab6",
    "description": "",
    "author": "",
    "license": "ISC",
    "keywords": [],
-   "main": "index.js",
+   "exports": {
+      ".": {
+         "import": "./dist/index.mjs"
+      },
+      "./drivers/*": {
+         "import": "./dist/drivers/*/index.mjs"
+      },
+      "./utils/*": {
+         "import": "./dist/utils/*.mjs"
+      }
+   },
+   "main": "./dist/index.mjs",
+   "types": "./dist/index.d.ts",
+   "files": [
+      "dist"
+   ],
    "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1"
+      "build": "unbuild",
+      "prepack": "unbuild"
    },
    "dependencies": {
+      "db0": "^0.3.2",
+      "restql": "file:",
       "type-fest": "^4.41.0",
       "ufo": "^1.5.4"
    },
    "devDependencies": {
       "@apenhet/eslint-config": "^2.12.4",
       "@types/node": "^24.0.4",
-      "db0": "^0.3.2",
       "eslint": "^9.29.0",
       "typescript": "^5.8.2",
+      "unbuild": "^3.5.0",
       "vite": "^6.2.3",
       "vitest": "^3.0.9"
    }

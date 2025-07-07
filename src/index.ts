@@ -13,7 +13,7 @@ export function defineSchema<const S extends Schema>(schema: S): S {
 /**
  * Define a driver for the database.
  */
-export function defineDriver<R extends DriverDefintion, S extends Schema>(create: (schema: S) => R, defautlDb: () => Database) {
+export function defineDriver<R extends DriverOptions, S extends Schema>(create: (schema: S) => R, defautlDb: () => Database) {
    return (schema: S, db = defautlDb()) => {
       const result = create(schema)
       const findRaw = result.findRaw as R['findRaw']
@@ -66,7 +66,7 @@ export function defineDriver<R extends DriverDefintion, S extends Schema>(create
    }
 }
 
-interface DriverDefintion {
+export interface DriverOptions {
    findRaw: (table: string, params: object) => string
    findOneRaw: (table: string, primaryKey: any, params: object) => string
    updateRaw: (table: string, item: object, params: object) => string
