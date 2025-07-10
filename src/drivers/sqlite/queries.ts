@@ -170,3 +170,11 @@ export type FindOneRaw<S extends Schema, T extends TableName<S>, K extends Prima
    Joins<S, T, P>,
    Where<S, T, WhereWithPrimaryKey<S, T, K, P>>,
 ], ' '>>
+
+export type FindRawFn<S extends Schema> = <T extends TableName<S>, const P extends FindParams<S, T>>(table: T, params: P) => FindRaw<S, T, P>
+export type FindOneRawFn<S extends Schema> = <T extends TableName<S>, const K extends PrimaryKeyValue<S, T>, const P extends FindOneParams<S, T>>(table: T, key: K, params?: P) => FindOneRaw<S, T, K, P>
+export type RemoveRawFn<S extends Schema> = <T extends TableName<S>, const P extends RemoveParams<S, T>>(table: T, params: P) => RemoveRaw<S, T, P>
+export type RemoveOneRawFn<S extends Schema> = <T extends TableName<S>, const K extends PrimaryKeyValue<S, T>, const P extends RemoveOneParams<S, T>>(table: T, key: K, params?: P) => RemoveOneRaw<S, T, K, P>
+export type UpdateRawFn<S extends Schema> = <T extends TableName<S>, const I extends Partial<Item<S, T>>, const P extends UpdateParams<S, T>>(table: T, item: I, params: P) => UpdateRaw<S, T, I, P>
+export type UpdateOneRawFn<S extends Schema> = <T extends TableName<S>, const K extends PrimaryKeyValue<S, T>, const I extends Partial<Item<S, T>>, const P extends UpdateOneParams<S, T>>(table: T, key: K, item: I, params?: P) => UpdateOneRaw<S, T, K, I, P>
+export type CreateOneRawFn<S extends Schema> = <T extends TableName<S>, const I extends Partial<Item<S, T>>>(table: T, item: I) => CreateOneRaw<S, T, I>

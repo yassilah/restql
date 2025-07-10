@@ -1,4 +1,4 @@
-import { S as Schema, T as TableName, Q as QueryParams, I as Item, a as TableDefinition } from './shared/restql.DyUQsuu_.mjs';
+import { S as Schema, T as TableName, Q as QueryParams, I as Item, a as TableDefinition } from './shared/restql.Cg9JqUZs.mjs';
 import * as db0 from 'db0';
 import { Database } from 'db0';
 import 'type-fest/source/union-to-tuple';
@@ -36,6 +36,7 @@ declare function defineDriver<R extends DriverOptions, S extends Schema>(create:
     };
     db: Database<db0.Connector<unknown>>;
     schema: S;
+    setDatabase: (newDb: Database) => /*elided*/ any;
 };
 interface DriverOptions {
     findRaw: (table: string, params: object) => string;

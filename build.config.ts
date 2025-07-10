@@ -7,6 +7,7 @@ export default defineBuildConfig({
       './src/utils/helpers',
       './src/utils/statements',
       './src/drivers/sqlite/index',
+      './src/drivers/sqlite/queries',
       './src/drivers/postgres/index',
       './src/drivers/mysql/index',
    ],

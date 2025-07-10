@@ -1,8 +1,18 @@
-import sqlite from 'restql/drivers/sqlite'
+import instance from '@/drivers/sqlite'
 import schema from './schema'
 
-const { find } = sqlite(schema)
+const { find } = instance(schema)
 
-const l = await find.raw('countries', {
-   columns: ['code', 'region.name'],
+const user = await find.raw('users', {
+   columns: ['name', 'id'],
+   where: {
+      id: {
+         $eq: 1,
+      },
+      $and: [{
+         name: {
+            $like: '%John%',
+         },
+      }],
+   },
 })

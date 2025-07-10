@@ -3,14 +3,14 @@ function defineSchema(schema) {
 }
 function defineDriver(create, defautlDb) {
   return (schema, db = defautlDb()) => {
-    const result = create(schema);
-    const findRaw = result.findRaw;
-    const findOneRaw = result.findOneRaw;
-    const updateRaw = result.updateRaw;
-    const updateOneRaw = result.updateOneRaw;
-    const createOneRaw = result.createOneRaw;
-    const removeRaw = result.removeRaw;
-    const removeOneRaw = result.removeOneRaw;
+    const driver = create(schema);
+    const findRaw = driver.findRaw;
+    const findOneRaw = driver.findOneRaw;
+    const updateRaw = driver.updateRaw;
+    const updateOneRaw = driver.updateOneRaw;
+    const createOneRaw = driver.createOneRaw;
+    const removeRaw = driver.removeRaw;
+    const removeOneRaw = driver.removeOneRaw;
     const find = (table, params) => {
       return db.sql`${findRaw(table, params)}`;
     };
@@ -32,7 +32,11 @@ function defineDriver(create, defautlDb) {
     const removeOne = (table, primaryKey, params) => {
       return db.sql`${removeOneRaw(table, primaryKey, params || {})}`;
     };
-    return {
+    const setDatabase = (newDb) => {
+      db = newDb;
+      return result;
+    };
+    const result = {
       find: Object.assign(find, { raw: findRaw }),
       findOne: Object.assign(findOne, { raw: findOneRaw }),
       update: Object.assign(update, { raw: updateRaw }),
@@ -41,8 +45,10 @@ function defineDriver(create, defautlDb) {
       remove: Object.assign(remove, { raw: removeRaw }),
       removeOne: Object.assign(removeOne, { raw: removeOneRaw }),
       db,
-      schema
+      schema,
+      setDatabase
     };
+    return result;
   };
 }
 

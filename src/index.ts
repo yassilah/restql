@@ -15,14 +15,14 @@ export function defineSchema<const S extends Schema>(schema: S): S {
  */
 export function defineDriver<R extends DriverOptions, S extends Schema>(create: (schema: S) => R, defautlDb: () => Database) {
    return (schema: S, db = defautlDb()) => {
-      const result = create(schema)
-      const findRaw = result.findRaw as R['findRaw']
-      const findOneRaw = result.findOneRaw as R['findOneRaw']
-      const updateRaw = result.updateRaw as R['updateRaw']
-      const updateOneRaw = result.updateOneRaw as R['updateOneRaw']
-      const createOneRaw = result.createOneRaw as R['createOneRaw']
-      const removeRaw = result.removeRaw as R['removeRaw']
-      const removeOneRaw = result.removeOneRaw as R['removeOneRaw']
+      const driver = create(schema)
+      const findRaw = driver.findRaw as R['findRaw']
+      const findOneRaw = driver.findOneRaw as R['findOneRaw']
+      const updateRaw = driver.updateRaw as R['updateRaw']
+      const updateOneRaw = driver.updateOneRaw as R['updateOneRaw']
+      const createOneRaw = driver.createOneRaw as R['createOneRaw']
+      const removeRaw = driver.removeRaw as R['removeRaw']
+      const removeOneRaw = driver.removeOneRaw as R['removeOneRaw']
 
       const find = <T extends TableName<S>, P extends QueryParams<S, T>>(table: T, params: P) => {
          return db.sql<Item<S, T, P['columns']>[]>`${findRaw(table, params)}`
@@ -52,7 +52,12 @@ export function defineDriver<R extends DriverOptions, S extends Schema>(create: 
          return db.sql<Item<S, T> | null>`${removeOneRaw(table, primaryKey, params || {})}`
       }
 
-      return {
+      const setDatabase = (newDb: Database) => {
+         db = newDb
+         return result
+      }
+
+      const result = {
          find: Object.assign(find, { raw: findRaw }),
          findOne: Object.assign(findOne, { raw: findOneRaw }),
          update: Object.assign(update, { raw: updateRaw }),
@@ -62,7 +67,10 @@ export function defineDriver<R extends DriverOptions, S extends Schema>(create: 
          removeOne: Object.assign(removeOne, { raw: removeOneRaw }),
          db,
          schema,
+         setDatabase,
       }
+
+      return result
    }
 }
 
