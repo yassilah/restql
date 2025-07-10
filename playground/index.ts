@@ -3,7 +3,7 @@ import schema from './schema'
 
 const { find } = instance(schema)
 
-const user = await find.raw('users', {
+const user = await find('users', {
    columns: ['name', 'id'],
    where: {
       id: {

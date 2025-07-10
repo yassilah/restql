@@ -1,4 +1,4 @@
-import type { EmptyObject, Simplify, Trim, UnionToTuple } from 'type-fest'
+import type { Simplify, Trim, UnionToTuple } from 'type-fest'
 import type { JoinableItem } from 'type-fest/source/join'
 import type { CleanJoin, UniqueArray } from '@/types/helpers'
 import type { Condition, ConditionTree, QueryParams } from '@/types/params'
@@ -324,3 +324,5 @@ export type AllFields<S extends Schema, T extends TableName<S>, P extends QueryP
         | (P['groupBy'] extends string[] ? P['groupBy'][number] : never)
         | (P['orderBy'] extends string[] ? Unprepend<P['orderBy'][number], '-'> : never)
     >>
+
+interface EmptyObject {}
