@@ -1,4 +1,5 @@
-import type { EmptyObject, Simplify } from 'type-fest'
+import type { EmptyObject } from 'type-fest'
+import type { Simplify } from './helpers'
 
 export interface Schema {
    [table: string]: {

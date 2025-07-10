@@ -1,4 +1,4 @@
-import { S as Schema, T as TableName, Q as QueryParams, I as Item, a as TableDefinition } from './shared/restql.Cg9JqUZs.js';
+import { S as Schema, T as TableName, Q as QueryParams, I as Item, P as PrimaryKeyValue, a as TableDefinition } from './shared/restql.BCjo-i-B.js';
 import * as db0 from 'db0';
 import { Database } from 'db0';
 import 'type-fest/source/union-to-tuple';
@@ -13,25 +13,25 @@ declare function defineSchema<const S extends Schema>(schema: S): S;
  * Define a driver for the database.
  */
 declare function defineDriver<R extends DriverOptions, S extends Schema>(create: (schema: S) => R, defautlDb: () => Database): (schema: S, db?: Database<db0.Connector<unknown>>) => {
-    find: (<T extends TableName<S>, P extends QueryParams<S, T>>(table: T, params: P) => Promise<Item<S, T, P["columns"]>[]>) & {
+    find: (<T extends TableName<S>, const P extends QueryParams<S, T>>(table: T, params: P) => Promise<Item<S, T, P["columns"]>[]>) & {
         raw: R["findRaw"];
     };
-    findOne: (<T extends TableName<S>, K extends Item<S, T>["id"], P extends QueryParams<S, T>>(table: T, primaryKey: K, params?: P) => Promise<Item<S, T, P["columns"]> | null>) & {
+    findOne: (<T extends TableName<S>, const K extends PrimaryKeyValue<S, T>, const P extends QueryParams<S, T>>(table: T, primaryKey: K, params?: P) => Promise<Item<S, T, P["columns"]> | null>) & {
         raw: R["findOneRaw"];
     };
-    update: (<T extends TableName<S>, P extends QueryParams<S, T>>(table: T, item: Partial<Item<S, T, P["columns"]>>, params?: P) => Promise<Item<S, T, P["columns"]>>) & {
+    update: (<T extends TableName<S>, const P extends QueryParams<S, T>>(table: T, item: Partial<Item<S, T, P["columns"]>>, params?: P) => Promise<Item<S, T, P["columns"]>>) & {
         raw: R["updateRaw"];
     };
-    updateOne: (<T extends TableName<S>, K extends Item<S, T>["id"], P extends QueryParams<S, T>>(table: T, primaryKey: K, item: Partial<Item<S, T, P["columns"]>>, params?: P) => Promise<Item<S, T, P["columns"]> | null>) & {
+    updateOne: (<T extends TableName<S>, const K extends PrimaryKeyValue<S, T>, const P extends QueryParams<S, T>>(table: T, primaryKey: K, item: Partial<Item<S, T, P["columns"]>>, params?: P) => Promise<Item<S, T, P["columns"]> | null>) & {
         raw: R["updateOneRaw"];
     };
     createOne: (<T extends TableName<S>>(table: T, item: Partial<Item<S, T>>) => Promise<TableDefinition<S, T, false>>) & {
         raw: R["createOneRaw"];
     };
-    remove: (<T extends TableName<S>, P extends QueryParams<S, T>>(table: T, params: P) => Promise<TableDefinition<S, T, false>[]>) & {
+    remove: (<T extends TableName<S>, const P extends QueryParams<S, T>>(table: T, params: P) => Promise<TableDefinition<S, T, false>[]>) & {
         raw: R["removeRaw"];
     };
-    removeOne: (<T extends TableName<S>, K extends Item<S, T>["id"], P extends QueryParams<S, T>>(table: T, primaryKey: K, params?: P) => Promise<TableDefinition<S, T, false> | null>) & {
+    removeOne: (<T extends TableName<S>, const K extends PrimaryKeyValue<S, T>, const P extends QueryParams<S, T>>(table: T, primaryKey: K, params?: P) => Promise<TableDefinition<S, T, false> | null>) & {
         raw: R["removeOneRaw"];
     };
     db: Database<db0.Connector<unknown>>;

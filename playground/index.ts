@@ -3,16 +3,6 @@ import schema from './schema'
 
 const { find } = instance(schema)
 
-const user = await find('users', {
-   columns: ['name', 'id'],
-   where: {
-      id: {
-         $eq: 1,
-      },
-      $and: [{
-         name: {
-            $like: '%John%',
-         },
-      }],
-   },
+const user = await find('countries', {
+   columns: ['name', 'region.name', 'region.planet.name'],
 })

@@ -1,6 +1,7 @@
-import type { Simplify, Trim, UnionToTuple } from 'type-fest'
+/* eslint-disable ts/no-empty-object-type */
+import type { Trim, UnionToTuple } from 'type-fest'
 import type { JoinableItem } from 'type-fest/source/join'
-import type { CleanJoin, UniqueArray } from '@/types/helpers'
+import type { CleanJoin, Simplify, UniqueArray } from '@/types/helpers'
 import type { Condition, ConditionTree, QueryParams } from '@/types/params'
 import type { FieldName, PrimaryKey, PrimaryKeyValue, Relation, RelationDefinition, RelationName, RelationTableName, Schema, TableDefinition, TableName } from '@/types/schema'
 
@@ -298,20 +299,19 @@ export type WhereClauses<S extends Schema, T extends TableName<S>, C extends Con
           ], ' AND '>
           : W
 
-type _Item<S extends Schema, T extends TableName<S>, C extends string[], I = EmptyObject>
-    = C extends [infer U, ...infer Rest] ? I & {
-       [K in U as U extends `${infer A}.${string}` ? A : U extends string ? U : never]:
-       U extends string
-          ? U extends `${infer A}.${infer B}`
-             ? A extends RelationName<S, T>
-                ? _Item<S, RelationTableName<S, T, A>, [B]>
-                : never
-             : U extends keyof TableDefinition<S, T>
-                ? TableDefinition<S, T>[U]
-                : never
-          : never
-    } & (Rest extends string[] ? _Item<S, T, Rest> : EmptyObject)
-       : I
+type _Item<S extends Schema, T extends TableName<S>, C extends string[], I = {}> = C extends [infer U, ...infer Rest] ? I & {
+   [K in U as U extends `${infer A}.${string}` ? A : U extends string ? U : never]:
+   U extends string
+      ? U extends `${infer A}.${infer B}`
+         ? A extends RelationName<S, T>
+            ? _Item<S, RelationTableName<S, T, A>, [B]>
+            : never
+         : U extends keyof TableDefinition<S, T>
+            ? TableDefinition<S, T>[U]
+            : never
+      : never
+} & (Rest extends string[] ? _Item<S, T, Rest> : {})
+   : I
 
 export type Item<S extends Schema, T extends TableName<S>, C extends QueryParams<S, T>['columns'] | undefined = undefined> = C extends string[] ? Simplify<_Item<S, T, C>> : TableDefinition<S, T, false>
 
@@ -324,5 +324,3 @@ export type AllFields<S extends Schema, T extends TableName<S>, P extends QueryP
         | (P['groupBy'] extends string[] ? P['groupBy'][number] : never)
         | (P['orderBy'] extends string[] ? Unprepend<P['orderBy'][number], '-'> : never)
     >>
-
-interface EmptyObject {}
