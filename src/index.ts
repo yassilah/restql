@@ -83,3 +83,7 @@ export interface DriverOptions {
    removeOneRaw: (table: string, primaryKey: any, params: object) => string
    createOneRaw: (table: string, item: object) => string
 }
+
+export * from './types/helpers.d'
+export * from './types/params.d'
+export * from './types/schema.d'

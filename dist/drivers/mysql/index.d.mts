@@ -1,6 +1,6 @@
 import * as db0 from 'db0';
 import { FindRawFn, FindOneRawFn, UpdateRawFn, UpdateOneRawFn, CreateOneRawFn, RemoveRawFn, RemoveOneRawFn } from '../sqlite/queries.mjs';
-import { S as Schema, T as TableName, Q as QueryParams, I as Item, P as PrimaryKeyValue, a as TableDefinition } from '../../shared/restql.BCjo-i-B.mjs';
+import { S as Schema, T as TableName, Q as QueryParams, I as Item, P as PrimaryKeyValue, a as TableDefinition } from '../../shared/restql.BMfI9CK7.mjs';
 import 'type-fest';
 import '../../utils/statements.mjs';
 import 'type-fest/source/union-to-tuple';
